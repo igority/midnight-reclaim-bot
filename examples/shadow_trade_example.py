@@ -8,8 +8,8 @@ This is a REFERENCE implementation showing the complete workflow.
 
 from datetime import datetime
 from core.shadow_trades import ShadowTradeManager, FilterCheck
-from logging.logger import Logger
-from logging.schemas import TradeLog
+from strategy_logging.logger import Logger
+from strategy_logging.schemas import TradeLog
 
 # ============================================================================
 # SCENARIO 1: Setup passes all filters → REAL TRADE

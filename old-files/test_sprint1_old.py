@@ -5,8 +5,7 @@ Tests that all Sprint 1 components are working:
 1. Configuration loading
 2. Time utilities
 3. Logging system
-4. Yahoo Finance data loader (primary)
-5. IBKR connection (optional)
+4. IBKR connection (optional - requires TWS running)
 """
 
 import sys
@@ -88,8 +87,8 @@ print("TEST 3: Logging System")
 print("-" * 70)
 
 try:
-    from strategy_logging.logger import Logger
-    from strategy_logging.schemas import EventLog, TradeLog, TradingState
+    from logging.logger import Logger
+    from logging.schemas import EventLog, TradeLog, TradingState
     
     # Initialize logger
     logger = Logger()
@@ -118,7 +117,6 @@ try:
         timestamp_entry=datetime.now(),
         timestamp_exit=datetime.now(),
         instrument="NQ",
-        trade_type="REAL",
         direction="LONG",
         midnight_open=17550.0,
         deviation_extreme=17500.0,
@@ -152,7 +150,7 @@ try:
     print("✅ Trade logging working")
     
     # Read back logs
-    from strategy_logging.logger import LogReader
+    from logging.logger import LogReader
     reader = LogReader()
     
     events = reader.read_events()
@@ -164,63 +162,12 @@ try:
     
 except Exception as e:
     print(f"❌ Logging test FAILED: {e}")
-    import traceback
-    traceback.print_exc()
     sys.exit(1)
 
 print()
 
-# Test 4: Yahoo Finance Data Loader (PRIMARY)
-print("TEST 4: Yahoo Finance Data Loader (PRIMARY)")
-print("-" * 70)
-print("   Testing free data source for backtesting...")
-print()
-
-try:
-    from data.yahoo_loader import YahooFinanceLoader
-    
-    loader = YahooFinanceLoader()
-    
-    print("   Fetching 5 days of 1-minute NQ data...")
-    nq_data = loader.fetch_historical_bars('NQ', period='5d', interval='1m')
-    
-    if not nq_data.empty:
-        print(f"✅ Yahoo Finance data fetch successful!")
-        print(f"   Fetched {len(nq_data)} bars")
-        print(f"   Date range: {nq_data.index[0]} to {nq_data.index[-1]}")
-        print(f"\n   Sample data:")
-        print(nq_data.head(3))
-        
-        # Test data validation
-        print("\n   Validating data quality...")
-        from data.data_validator import DataValidator
-        
-        validator = DataValidator(expected_bar_size='1min')
-        results = validator.validate(nq_data, 'NQ')
-        
-        if results['passed']:
-            print(f"   ✅ Data validation PASSED")
-        else:
-            print(f"   ⚠️  Data has issues (see warnings)")
-            if results['issues']:
-                for issue in results['issues']:
-                    print(f"      - {issue}")
-        
-    else:
-        print("⚠️  Data fetch returned empty (might be market closed)")
-        
-except ImportError as e:
-    print(f"⚠️  yfinance not installed: {e}")
-    print(f"   Install with: pip install yfinance")
-except Exception as e:
-    print(f"⚠️  Yahoo Finance test failed: {e}")
-    import traceback
-    traceback.print_exc()
-
-print()
-
-# Test 5: IBKR Connection (Optional - only if TWS running)
-print("TEST 5: IBKR Connection (OPTIONAL)")
+# Test 4: IBKR Connection (Optional - only if TWS is running)
+print("TEST 4: IBKR Connection (Optional)")
 print("-" * 70)
 print("⚠️  This test requires TWS/Gateway to be running")
 print("   If you don't have it running, this test will be skipped")
@@ -236,23 +183,22 @@ try:
         loader.connect()
         print("✅ IBKR connection successful!")
         
-        # Try to search for contracts
-        print("   Attempting to search for NQ contracts...")
+        # Try to fetch just a few bars as a quick test
+        print("   Attempting to fetch sample data...")
         
-        from ib_insync import Contract
-        contract = Contract()
-        contract.symbol = 'NQ'
-        contract.secType = 'FUT'
-        contract.exchange = 'GLOBEX'
-        contract.currency = 'USD'
+        nq_data = loader.fetch_historical_bars(
+            symbol="NQ",
+            duration="1 D",
+            bar_size="1 min"
+        )
         
-        details = loader.ib.reqContractDetails(contract)
-        
-        if details:
-            print(f"✅ Found {len(details)} NQ contracts!")
-            print(f"   Front month: {details[0].contract.lastTradeDateOrContractMonth}")
+        if not nq_data.empty:
+            print(f"✅ Data fetch successful!")
+            print(f"   Fetched {len(nq_data)} bars")
+            print(f"   Sample data:")
+            print(nq_data.head(3))
         else:
-            print("⚠️  No contracts found (check market data subscription)")
+            print("⚠️  Data fetch returned empty (this might be OK if market is closed)")
         
         loader.disconnect()
         
@@ -276,16 +222,14 @@ print()
 print("✅ Configuration system: WORKING")
 print("✅ Time utilities: WORKING")
 print("✅ Logging system: WORKING")
-print("✅ Yahoo Finance (FREE data): WORKING")
-print("⚠️  IBKR connection: OPTIONAL (requires TWS + subscription)")
+print("⚠️  IBKR connection: OPTIONAL (start TWS to test)")
 print()
 print("="*70)
 print("SPRINT 1: COMPLETE ✅")
 print("="*70)
 print()
 print("Next steps:")
-print("1. Review generated log files in strategy_logging/events/ and strategy_logging/trades/")
-print("2. Yahoo Finance data is working - ready for backtesting!")
-print("3. IBKR is optional - you can skip it for now")
-print("4. Ready to begin Sprint 2: Indicators")
+print("1. Review generated log files in logs/events/ and logs/trades/")
+print("2. Start TWS/Gateway and run test again to verify IBKR connection")
+print("3. Ready to begin Sprint 2: Indicators")
 print()

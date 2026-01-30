@@ -7,7 +7,7 @@ Implements Agent 2's dual-logging architecture.
 
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from enum import Enum
 
 
@@ -162,6 +162,17 @@ class TradeLog:
     pnl_dollars: float
     win: bool
     
+    # Session context
+    overnight_range: float
+    adr: float
+    ons_ratio: float  # Overnight range / ADR
+    
+    # Regime tags
+    regime_high_vol: bool
+    regime_trend_day: bool
+    regime_gap_day: bool
+    regime_news_day: bool
+    
     # Filter Analysis (for shadow trades)
     blocked_by_filter: Optional[str] = None  # Which filter blocked (if shadow)
     filters_passed: Optional[List[str]] = None  # List of filter names that passed
@@ -182,17 +193,6 @@ class TradeLog:
     # Version tracking
     strategy_version: str = "1.0"
     config_hash: Optional[str] = None  # Hash of config at trade time
-    
-    # Session context
-    overnight_range: float
-    adr: float
-    ons_ratio: float  # Overnight range / ADR
-    
-    # Regime tags
-    regime_high_vol: bool
-    regime_trend_day: bool
-    regime_gap_day: bool
-    regime_news_day: bool
     
     # Additional context
     vix_value: Optional[float] = None

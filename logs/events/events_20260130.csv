@@ -1,0 +1,2 @@
+timestamp,instrument,state,open,high,low,close,volume,midnight_open,overnight_range,adr,ons_valid,bias,nq_sweep_depth,es_sweep_depth,nq_sweep_depth_norm,es_sweep_depth_norm,smt_binary,smt_degree,isi_value,displacement_detected,reclaim_active,minutes_since_deviation,reclaim_body_ratio,regime_high_vol,regime_trend_day,regime_gap_day,regime_news_day,vix_value,gap_size
+2026-01-30T23:29:56.552378,NQ,AWAITING_RECLAIM,17500.0,17520.0,17495.0,17510.0,1000,17550.0,,,,,,,,,True,0.45,,,,,,,,,,,
