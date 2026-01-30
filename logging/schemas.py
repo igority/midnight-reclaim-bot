@@ -110,7 +110,10 @@ class EventLog:
 class TradeLog:
     """
     Trade log - one row per trade.
-    Logged only when a trade is entered and exited.
+    Logged for both REAL trades and SHADOW trades (one-filter-failed).
+    
+    CRITICAL: Shadow trades are logged but NEVER affect live decisions.
+    Shadow trades are analyzed ONLY after 50 real trades are completed.
     """
     # Trade identification
     trade_id: int
@@ -119,6 +122,9 @@ class TradeLog:
     
     # Instrument
     instrument: str
+    
+    # Trade type (CRITICAL DISTINCTION)
+    trade_type: str  # "REAL" or "SHADOW"
     
     # Setup classification
     direction: str  # "LONG" or "SHORT"
@@ -155,6 +161,27 @@ class TradeLog:
     pnl_r: float  # R-multiples
     pnl_dollars: float
     win: bool
+    
+    # Filter Analysis (for shadow trades)
+    blocked_by_filter: Optional[str] = None  # Which filter blocked (if shadow)
+    filters_passed: Optional[List[str]] = None  # List of filter names that passed
+    filters_failed: Optional[List[str]] = None  # List of filter names that failed
+    
+    # Filter proximity (how close to passing?)
+    smt_degree_threshold: Optional[float] = None  # What threshold was used
+    isi_threshold_min: Optional[float] = None
+    isi_threshold_max: Optional[float] = None
+    reclaim_time_limit: Optional[int] = None
+    
+    # Execution reality (for REAL trades only)
+    broker_time: Optional[datetime] = None  # MT5 server time
+    server_time: Optional[datetime] = None  # VPS time
+    spread_at_entry: Optional[float] = None  # Spread in points/ticks
+    slippage_ticks: Optional[float] = None  # Actual vs intended fill
+    
+    # Version tracking
+    strategy_version: str = "1.0"
+    config_hash: Optional[str] = None  # Hash of config at trade time
     
     # Session context
     overnight_range: float

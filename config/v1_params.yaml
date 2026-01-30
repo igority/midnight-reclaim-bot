@@ -113,6 +113,14 @@ logging:
   # No-trade reason tracking
   track_rejection_reasons: true
   
+  # Shadow trades (one-filter-failed candidates)
+  shadow_trades:
+    enabled: true  # Log shadow trades
+    criteria: "one_filter_failed"  # Only log if exactly 1 gating filter failed
+    require_near_miss: false  # Log all one-filter-failed, not just near misses
+    use_same_exits: true  # MANDATORY - shadows use same exit logic
+    review_lock_until_n_trades: 50  # Cannot review until this many REAL trades
+    
   # Regime tagging (logged, not filtered in v1.0)
   regime_tagging:
     enabled: true

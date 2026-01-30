@@ -1,0 +1,74 @@
+================================================================================
+⚠️  SHADOW TRADE REVIEW - PSYCHOLOGICAL GUARDRAIL ⚠️
+================================================================================
+
+DO NOT REVIEW SHADOW TRADE PERFORMANCE UNTIL:
+
+✅ 50 REAL TRADES HAVE BEEN COMPLETED
+✅ v1.0 EVALUATION IS FINISHED
+✅ You have documented v1.0 results
+
+================================================================================
+
+WHY THIS RULE EXISTS:
+
+Shadow trades will APPEAR to outperform real trades over small samples (10-20).
+This is NORMAL variance, not evidence that filters are wrong.
+
+If you review shadow performance too early:
+❌ You will experience regret bias
+❌ You will remove filters prematurely  
+❌ Performance will collapse in live trading
+❌ You will conclude "the system stopped working"
+
+The system didn't stop working.
+You stopped following your own rules.
+
+================================================================================
+
+WHAT SHADOW TRADES ARE FOR:
+
+After 50+ real trades, shadow trades help answer:
+
+✅ "How many trades did SMT block that would have won?"
+✅ "Are late reclaims actually bad, or just noisy?"
+✅ "Is ISI filtering edge or just reducing frequency?"
+✅ "Which filter has the highest opportunity cost?"
+
+You don't remove filters because shadows look good.
+You remove filters because they demonstrably destroy expectancy.
+
+================================================================================
+
+THE DISCIPLINE:
+
+1. Trade v1.0 for 50 real trades with ZERO modifications
+2. After 50 trades, analyze both real AND shadow performance
+3. Compare expectancy (not just win rate or single metrics)
+4. Make evidence-based decisions about filter modifications
+5. Test modifications in v1.5 (not v1.0)
+
+================================================================================
+
+REMEMBER:
+
+Your goal is not to maximize theoretical backtest performance.
+Your goal is to build a system you can TRUST and FOLLOW.
+
+If you break this rule, you break trust.
+If you break trust, you cannot follow the system.
+If you cannot follow the system, it doesn't matter how good it is.
+
+================================================================================
+
+PRINT THIS FILE.
+TAPE IT TO YOUR MONITOR.
+READ IT WHEN YOU'RE TEMPTED TO "JUST CHECK" SHADOW PERFORMANCE.
+
+================================================================================
+
+Date frozen: 2025-01-30
+v1.0 specification requires 50 real trades before shadow review
+NO EXCEPTIONS
+
+================================================================================

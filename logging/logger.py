@@ -82,7 +82,7 @@ class Logger:
     
     def log_trade(self, trade: TradeLog) -> None:
         """
-        Log a completed trade.
+        Log a completed trade (REAL or SHADOW).
         
         Args:
             trade: TradeLog instance
@@ -99,12 +99,21 @@ class Logger:
             
             writer.writerow(trade_dict)
         
-        # Print summary
-        win_label = "✅ WIN" if trade.win else "❌ LOSS"
-        print(f"\n{win_label} Trade #{trade.trade_id} logged:")
-        print(f"   {trade.direction} @ {trade.entry_price} → {trade.exit_price}")
-        print(f"   R: {trade.pnl_r:.2f} | P&L: ${trade.pnl_dollars:.2f}")
-        print(f"   Exit: {trade.exit_reason}\n")
+        # Print summary (different for REAL vs SHADOW)
+        if trade.trade_type == "REAL":
+            win_label = "✅ WIN" if trade.win else "❌ LOSS"
+            print(f"\n{win_label} Trade #{trade.trade_id} logged:")
+            print(f"   {trade.direction} @ {trade.entry_price} → {trade.exit_price}")
+            print(f"   R: {trade.pnl_r:.2f} | P&L: ${trade.pnl_dollars:.2f}")
+            print(f"   Exit: {trade.exit_reason}\n")
+        
+        elif trade.trade_type == "SHADOW":
+            win_label = "✅" if trade.win else "❌"
+            print(f"\n👻 SHADOW Trade #{trade.trade_id} logged:")
+            print(f"   Blocked by: {trade.blocked_by_filter}")
+            print(f"   Would have: {win_label} {trade.direction} @ {trade.entry_price} → {trade.exit_price}")
+            print(f"   Virtual R: {trade.pnl_r:.2f}")
+            print(f"   ⚠️  DO NOT review until 50 REAL trades completed\n")
     
     def log_no_trade(self, no_trade: NoTradeLog) -> None:
         """

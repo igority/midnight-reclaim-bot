@@ -190,7 +190,7 @@ pytest tests/test_indicators.py
    - Used for: debugging, understanding market conditions
 
 2. **Trade Log** (`logs/trades/`)
-   - One row per trade
+   - One row per trade (REAL and SHADOW)
    - Contains: entry/exit, P&L, R-multiples, setup quality
    - Used for: performance analysis, v1.5 evolution
 
@@ -198,6 +198,28 @@ pytest tests/test_indicators.py
    - Tracks rejected setups
    - Contains: rejection reasons, context at rejection
    - Used for: understanding filter effectiveness
+
+### Shadow Trades (One-Filter-Failed)
+
+**What are shadow trades?**
+- Setups that passed ALL core filters
+- Failed EXACTLY ONE gating filter
+- Logged with same entry/exit logic as real trades
+- Used to evaluate filter effectiveness
+
+**CRITICAL RULES:**
+1. ⛔ Shadow trades NEVER affect live decisions
+2. ⛔ Shadow performance NOT reviewed until 50 REAL trades
+3. ✅ Shadow trades use SAME exit logic as real trades
+4. ✅ Only one-filter-failed setups are logged
+
+**Why shadow trades?**
+After 50 real trades, they help answer:
+- "How many trades did SMT block that would have won?"
+- "Are late reclaims actually bad, or just noisy?"
+- "Which filter has the highest opportunity cost?"
+
+**See:** `SHADOW_TRADE_DISCIPLINE.txt` for full psychological guardrail.
 
 ### Log Fields Reference
 
