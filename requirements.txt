@@ -8,8 +8,9 @@ numpy==1.26.2
 # Backtesting
 backtrader==1.9.78.123
 
-# IBKR Data Source
-ib-insync==0.9.86
+# Data Sources
+ib-insync==0.9.86  # IBKR (requires subscription)
+yfinance==0.2.33   # Yahoo Finance (FREE alternative)
 
 # Configuration & Utilities
 pyyaml==6.0.1
