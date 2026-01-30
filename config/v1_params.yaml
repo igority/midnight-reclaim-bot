@@ -1,0 +1,152 @@
+# ============================================================================
+# MULTI-CONFIRMATION FALSE BREAKOUT REVERSAL - v1.0 FROZEN SPEC
+# ============================================================================
+# DO NOT MODIFY PARAMETERS UNTIL 50 LIVE TRADES COMPLETED
+# Frozen Date: 2025-01-30
+# ============================================================================
+
+version: "1.0"
+frozen_date: "2025-01-30"
+modification_lock: true
+
+# ============================================================================
+# INSTRUMENTS
+# ============================================================================
+instruments:
+  primary:
+    symbol: "NQ"
+    exchange: "CME"
+    currency: "USD"
+    description: "E-mini Nasdaq 100 Futures"
+    
+  smt_reference:
+    symbol: "ES"
+    exchange: "CME"
+    currency: "USD"
+    description: "E-mini S&P 500 Futures (for SMT divergence)"
+
+# ============================================================================
+# SESSION & TIME RULES
+# ============================================================================
+session:
+  timezone: "America/New_York"
+  
+  # Midnight Open - the anchor price
+  midnight_open_time: "00:00"
+  
+  # Trading window (NY session)
+  trading_window_start: "09:30"
+  trading_window_end: "10:30"
+  
+  # Hard limits
+  max_trades_per_session: 1
+
+# ============================================================================
+# FILTERS & CONDITIONS
+# ============================================================================
+
+# Overnight Session (ONS) Filter
+ons_filter:
+  enabled: true
+  adr_lookback_days: 20
+  min_ratio: 0.30  # ONS must be >= 30% of ADR
+  max_ratio: 0.70  # ONS must be <= 70% of ADR
+
+# Smart Money Technique (SMT) Divergence
+smt:
+  mode: "binary"  # v1.0: binary only (sweep vs no sweep)
+  log_degree: true  # Always log normalized sweep depth for v1.5
+  min_sweep_ticks: 5  # Minimum ticks below prior low to count as sweep
+
+# Impulse Strength Index (Displacement Filter)
+isi:
+  enabled: true
+  threshold_min: 1.2  # ISI must be < 1.2 to allow fade (not trending)
+  threshold_max: 2.0  # ISI must be > 2.0 to block fade (strong trend)
+  
+  # ISI = (AvgBody/ATR) × ConsecutiveBars × (1 - AvgWickRatio)
+  components:
+    body_ratio_weight: 1.0
+    consecutive_weight: 1.0
+    wick_penalty_weight: 1.0
+
+# Reclaim Trigger
+reclaim:
+  max_time_minutes: 45  # From deviation extreme to reclaim
+  min_body_ratio: 0.60  # Reclaim candle body must be >= 60% of range
+  buffer_ticks: 2  # Minimum buffer above midnight open for reclaim
+
+# ============================================================================
+# RISK MANAGEMENT
+# ============================================================================
+risk:
+  # Position Sizing
+  default_risk_percent: 1.0  # 1% of account per trade
+  
+  # R-Multiple Targets
+  tp1_r: 1.0  # Take Profit 1 at 1R
+  tp1_position_percent: 50  # Close 50% of position at TP1
+  
+  # Stop Loss
+  stop_mode: "sweep_extreme"  # Stop beyond the sweep low/high
+  stop_buffer_ticks: 5  # Additional buffer beyond sweep extreme
+  
+  # Runner Management (remaining 50% after TP1)
+  runner_mode: "breakeven_then_trail"  # Move to BE after TP1, then trail
+  trail_mode: "swing_low"  # Trail using 1-min swing lows
+  trail_lookback_bars: 5  # Use 5-bar swing low for trailing
+
+# ============================================================================
+# LOGGING
+# ============================================================================
+logging:
+  # Event log (high frequency - every state change)
+  event_log_enabled: true
+  event_log_path: "logs/events/"
+  event_log_format: "csv"
+  
+  # Trade log (one row per trade)
+  trade_log_enabled: true
+  trade_log_path: "logs/trades/"
+  trade_log_format: "csv"
+  
+  # No-trade reason tracking
+  track_rejection_reasons: true
+  
+  # Regime tagging (logged, not filtered in v1.0)
+  regime_tagging:
+    enabled: true
+    tags:
+      - "high_volatility"
+      - "trend_day"
+      - "gap_day"
+      - "news_day"
+
+# ============================================================================
+# BACKTESTING
+# ============================================================================
+backtest:
+  initial_cash: 100000.0
+  commission_per_contract: 2.50  # Round-trip commission
+  slippage_ticks: 1  # Conservative slippage estimate
+  
+  # Data requirements
+  data_timeframe: "1min"
+  warmup_days: 25  # Need 20 days for ADR + buffer
+
+# ============================================================================
+# HARD RULES (ENFORCED BY CODE)
+# ============================================================================
+hard_rules:
+  no_parameter_optimization: true
+  no_logic_changes_before_n_trades: 50
+  no_additional_instruments: true
+  no_discretionary_overrides: true
+  
+# ============================================================================
+# NOTES
+# ============================================================================
+# This configuration represents the v1.0 FROZEN specification.
+# No modifications allowed until 50 live trades are completed and analyzed.
+# Any proposed changes must be documented with statistical evidence.
+# ============================================================================

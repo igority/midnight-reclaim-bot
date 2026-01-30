@@ -1,0 +1,73 @@
+# ============================================================================
+# INSTRUMENT SPECIFICATIONS
+# ============================================================================
+# Contract specifications for futures traded in this system
+#
+# IMPORTANT: CFD trading hours may differ from futures RTH
+# - Backtest on futures data
+# - Trade on CFD feed
+# - Accept small structural mismatch
+# ============================================================================
+
+NQ:
+  name: "E-mini Nasdaq 100 Futures"
+  exchange: "CME"
+  symbol: "NQ"
+  currency: "USD"
+  
+  # Contract specifications
+  contract_size: 20  # $20 per index point
+  tick_size: 0.25  # Minimum price increment
+  tick_value: 5.00  # $20 × 0.25 = $5 per tick
+  
+  # Trading hours (US/Central - CME time)
+  trading_hours:
+    sunday_open: "17:00"
+    friday_close: "16:00"
+    daily_open: "17:00"
+    daily_close: "16:00"
+    
+  # Data requirements
+  point_value: 20
+  min_tick: 0.25
+
+ES:
+  name: "E-mini S&P 500 Futures"
+  exchange: "CME"
+  symbol: "ES"
+  currency: "USD"
+  
+  # Contract specifications
+  contract_size: 50  # $50 per index point
+  tick_size: 0.25  # Minimum price increment
+  tick_value: 12.50  # $50 × 0.25 = $12.50 per tick
+  
+  # Trading hours (US/Central - CME time)
+  trading_hours:
+    sunday_open: "17:00"
+    friday_close: "16:00"
+    daily_open: "17:00"
+    daily_close: "16:00"
+    
+  # Data requirements
+  point_value: 50
+  min_tick: 0.25
+
+# ============================================================================
+# CONTRACT ROLL SCHEDULE (Approximate)
+# ============================================================================
+# NQ and ES quarterly contracts: March (H), June (M), Sep (U), Dec (Z)
+# Typically roll 8-10 days before expiration
+# ============================================================================
+roll_schedule:
+  NQ:
+    - "2025-03-21"  # March contract
+    - "2025-06-20"  # June contract
+    - "2025-09-19"  # September contract
+    - "2025-12-19"  # December contract
+    
+  ES:
+    - "2025-03-21"  # March contract
+    - "2025-06-20"  # June contract
+    - "2025-09-19"  # September contract
+    - "2025-12-19"  # December contract
