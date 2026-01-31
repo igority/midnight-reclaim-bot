@@ -1,0 +1,26 @@
+# Trading Bot Requirements
+# =========================
+
+# Data & Market Access
+yfinance>=0.2.0                  # Yahoo Finance data
+ib_insync>=0.9.70               # Interactive Brokers (optional)
+
+# Backtesting
+backtrader>=1.9.78              # Backtesting framework
+matplotlib>=3.5.0               # For backtrader plotting
+
+# Data Processing
+pandas>=1.5.0                   # Data manipulation
+numpy>=1.23.0                   # Numerical computing
+
+# Configuration
+pyyaml>=6.0                     # YAML config files
+
+# Timezone Handling
+pytz>=2024.1                    # Timezone conversions
+
+# Testing
+unittest2>=1.1.0                # Enhanced unittest (optional)
+
+# Utilities
+python-dateutil>=2.8.2          # Date utilities
