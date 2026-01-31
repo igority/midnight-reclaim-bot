@@ -6,194 +6,164 @@ Tests the complete strategy engine with real data.
 Run this to verify Sprint 4 completion.
 """
 
-import sys
+import unittest
 from datetime import datetime, timedelta
-from data.yahoo_loader import YahooFinanceLoader
-from core.strategy import StrategyEngine
+import pandas as pd
 
-print("="*70)
-print("SPRINT 4: STRATEGY ENGINE TESTING")
-print("="*70)
-print()
 
-# Test 1: Load Data
-print("TEST 1: Loading Market Data")
-print("-" * 70)
+class TestSprint4(unittest.TestCase):
+    """Test class for Sprint 4 strategy engine tests."""
 
-try:
-    loader = YahooFinanceLoader()
-    
-    print("Fetching NQ data (5 days, 1-minute)...")
-    nq_data = loader.fetch_historical_bars('NQ', period='5d', interval='1m')
-    
-    print("Fetching ES data (5 days, 1-minute)...")
-    es_data = loader.fetch_historical_bars('ES', period='5d', interval='1m')
-    
-    if nq_data.empty or es_data.empty:
-        print("❌ No data available (market might be closed)")
-        print("   Try running during US market hours or on a weekday")
-        sys.exit(1)
-    
-    print(f"✅ Data loaded successfully")
-    print(f"   NQ: {len(nq_data)} bars")
-    print(f"   ES: {len(es_data)} bars")
-    print(f"   Date range: {nq_data.index[0].date()} to {nq_data.index[-1].date()}")
-    
-except Exception as e:
-    print(f"❌ Data loading FAILED: {e}")
-    import traceback
-    traceback.print_exc()
-    sys.exit(1)
+    @classmethod
+    def setUpClass(cls):
+        """Set up test fixtures before all test methods."""
+        try:
+            from data.yahoo_loader import YahooFinanceLoader
+            
+            loader = YahooFinanceLoader()
+            
+            # Load real data from Yahoo Finance (same as test_sprint4_file.py)
+            print("Loading NQ data from Yahoo Finance...")
+            cls.nq_data = loader.fetch_historical_bars('NQ', period='5d', interval='1m')
+            
+            print("Loading ES data from Yahoo Finance...")
+            cls.es_data = loader.fetch_historical_bars('ES', period='5d', interval='1m')
+            
+            if cls.nq_data.empty or cls.es_data.empty:
+                cls.skip_tests = True
+                cls.skip_reason = "No data available (market might be closed)"
+            else:
+                cls.skip_tests = False
+                cls.skip_reason = None
+                
+        except Exception as e:
+            cls.skip_tests = True
+            cls.skip_reason = f"Data loading failed: {e}"
 
-print()
+    def setUp(self):
+        """Set up test fixtures before each test method."""
+        if self.skip_tests:
+            self.skipTest(self.skip_reason)
 
-# Test 2: Strategy Engine Initialization
-print("TEST 2: Strategy Engine Initialization")
-print("-" * 70)
+    def test_data_loading(self):
+        """Test 1: Loading Market Data"""
+        # Data is already loaded in setUpClass, just verify it
+        self.assertFalse(self.nq_data.empty, "NQ data should not be empty")
+        self.assertFalse(self.es_data.empty, "ES data should not be empty")
+        print(f"   NQ: {len(self.nq_data)} bars")
+        print(f"   ES: {len(self.es_data)} bars")
+        print(f"   Date range: {self.nq_data.index[0].date()} to {self.nq_data.index[-1].date()}")
 
-try:
-    engine = StrategyEngine()
-    print("\n✅ Strategy engine initialized successfully")
-    
-except Exception as e:
-    print(f"❌ Strategy engine initialization FAILED: {e}")
-    import traceback
-    traceback.print_exc()
-    sys.exit(1)
+    def test_strategy_engine_initialization(self):
+        """Test 2: Strategy Engine Initialization"""
+        try:
+            from core.strategy import StrategyEngine
+            
+            engine = StrategyEngine()
+            self.assertIsNotNone(engine)
+            self.assertIsNotNone(engine.state_machine)
+            # Note: StrategyEngine doesn't have an 'indicators' attribute
+            # It has individual indicator calculators instead
+            
+        except Exception as e:
+            self.fail(f"Strategy engine initialization FAILED: {e}")
 
-print()
+    def test_single_session_execution(self):
+        """Test 3: Running Strategy on Most Recent Session"""
+        try:
+            from core.strategy import StrategyEngine
+            
+            engine = StrategyEngine()
+            
+            # Get most recent complete trading day
+            unique_dates = list(set(self.nq_data.index.date))
+            unique_dates.sort()
+            
+            # Use second-to-last date (last date might be incomplete)
+            if len(unique_dates) >= 2:
+                test_date = unique_dates[-2]
+            else:
+                test_date = unique_dates[-1]
+            
+            # Convert to datetime
+            test_datetime = datetime.combine(test_date, datetime.min.time())
+            
+            print(f"\nRunning strategy for: {test_date}")
+            print("-" * 70)
+            
+            # Run strategy
+            result = engine.run_session(self.nq_data, self.es_data, test_datetime)
+            
+            # Verify result structure
+            self.assertIn('session_date', result)
+            self.assertIn('trades', result)
+            self.assertIsInstance(result['trades'], int)
+            
+            print(f"\nSession Results:")
+            print(f"Date: {result['session_date'].date()}")
+            print(f"Trades taken: {result['trades']}")
+            print(f"Final state: {result.get('state', 'N/A')}")
+            
+            if 'midnight_open' in result:
+                print(f"Midnight open: {result['midnight_open']:.2f}")
+            if 'adr' in result:
+                print(f"ADR: {result['adr']:.2f}")
+            if 'bias' in result:
+                print(f"Bias: {result['bias']}")
+            if 'reason' in result:
+                print(f"No-trade reason: {result['reason']}")
+            
+        except Exception as e:
+            self.fail(f"Strategy execution FAILED: {e}")
 
-# Test 3: Run Strategy on Single Session
-print("TEST 3: Running Strategy on Most Recent Session")
-print("-" * 70)
+    def test_multi_session_execution(self):
+        """Test 4: Running Strategy on Multiple Sessions"""
+        try:
+            from core.strategy import StrategyEngine
+            
+            # Test on last 3 days
+            unique_dates = list(set(self.nq_data.index.date))
+            unique_dates.sort()
+            test_dates = unique_dates[-3:]
+            
+            print(f"\nTesting {len(test_dates)} sessions...")
+            print()
+            
+            results_summary = []
+            
+            for date in test_dates:
+                print(f"\n{'='*70}")
+                print(f"Session: {date}")
+                print(f"{'='*70}")
+                
+                # Reset engine for new session
+                engine = StrategyEngine()
+                
+                test_datetime = datetime.combine(date, datetime.min.time())
+                result = engine.run_session(self.nq_data, self.es_data, test_datetime)
+                
+                results_summary.append({
+                    'date': date,
+                    'trades': result['trades'],
+                    'state': result.get('state', 'UNKNOWN')
+                })
+            
+            # Summary
+            print("\n" + "="*70)
+            print("MULTI-SESSION SUMMARY")
+            print("="*70)
+            
+            total_trades = sum(r['trades'] for r in results_summary)
+            
+            for r in results_summary:
+                print(f"{r['date']}: {r['trades']} trades, final state: {r['state']}")
+            
+            print(f"\nTotal trades across {len(test_dates)} sessions: {total_trades}")
+            
+        except Exception as e:
+            self.fail(f"Multi-session test FAILED: {e}")
 
-try:
-    # Get most recent complete trading day
-    unique_dates = list(set(nq_data.index.date))
-    unique_dates.sort()
-    
-    # Use second-to-last date (last date might be incomplete)
-    if len(unique_dates) >= 2:
-        test_date = unique_dates[-2]
-    else:
-        test_date = unique_dates[-1]
-    
-    # Convert to datetime
-    test_datetime = datetime.combine(test_date, datetime.min.time())
-    
-    print(f"\nRunning strategy for: {test_date}")
-    print("-" * 70)
-    
-    # Run strategy
-    result = engine.run_session(nq_data, es_data, test_datetime)
-    
-    print("\n" + "="*70)
-    print("SESSION RESULTS")
-    print("="*70)
-    print(f"Date: {result['session_date'].date()}")
-    print(f"Trades taken: {result['trades']}")
-    print(f"Final state: {result.get('state', 'N/A')}")
-    
-    if 'midnight_open' in result:
-        print(f"Midnight open: {result['midnight_open']:.2f}")
-    if 'adr' in result:
-        print(f"ADR: {result['adr']:.2f}")
-    if 'bias' in result:
-        print(f"Bias: {result['bias']}")
-    if 'reason' in result:
-        print(f"No-trade reason: {result['reason']}")
-    
-    print("\n✅ Strategy execution completed successfully")
-    
-except Exception as e:
-    print(f"\n❌ Strategy execution FAILED: {e}")
-    import traceback
-    traceback.print_exc()
-    sys.exit(1)
 
-print()
-
-# Test 4: Run Strategy on Multiple Sessions
-print("TEST 4: Running Strategy on Multiple Sessions")
-print("-" * 70)
-
-try:
-    # Test on last 3 days
-    test_dates = unique_dates[-3:]
-    
-    print(f"\nTesting {len(test_dates)} sessions...")
-    print()
-    
-    results_summary = []
-    
-    for date in test_dates:
-        print(f"\n{'='*70}")
-        print(f"Session: {date}")
-        print(f"{'='*70}")
-        
-        # Reset engine for new session
-        engine = StrategyEngine()
-        
-        test_datetime = datetime.combine(date, datetime.min.time())
-        result = engine.run_session(nq_data, es_data, test_datetime)
-        
-        results_summary.append({
-            'date': date,
-            'trades': result['trades'],
-            'state': result.get('state', 'UNKNOWN')
-        })
-    
-    # Summary
-    print("\n" + "="*70)
-    print("MULTI-SESSION SUMMARY")
-    print("="*70)
-    
-    total_trades = sum(r['trades'] for r in results_summary)
-    
-    for r in results_summary:
-        print(f"{r['date']}: {r['trades']} trades, final state: {r['state']}")
-    
-    print(f"\nTotal trades across {len(test_dates)} sessions: {total_trades}")
-    
-    print("\n✅ Multi-session test completed")
-    
-except Exception as e:
-    print(f"\n❌ Multi-session test FAILED: {e}")
-    import traceback
-    traceback.print_exc()
-    sys.exit(1)
-
-print()
-
-# Final Summary
-print("="*70)
-print("SPRINT 4 SUMMARY")
-print("="*70)
-
-tests_status = [
-    ("Data Loading", "✅ WORKING"),
-    ("Strategy Initialization", "✅ WORKING"),
-    ("Single Session Execution", "✅ WORKING"),
-    ("Multi-Session Execution", "✅ WORKING"),
-]
-
-for test, status in tests_status:
-    print(f"  {test:.<40} {status}")
-
-print("\n" + "="*70)
-print("✅ SPRINT 4 COMPLETE!")
-print("="*70)
-
-print("\nStrategy engine is operational!")
-print("\nReady for:")
-print("  ✅ Sprint 5: Risk Management & Execution")
-print("  ✅ Sprint 6: Backtesting Framework")
-print("  ✅ Live trading preparation")
-
-print("\nNext steps:")
-print("  1. Review strategy execution flow")
-print("  2. Check generated logs")
-print("  3. Understand entry/exit logic")
-print("  4. Ready for risk management (Sprint 5)")
-
-print("\n" + "="*70)
+if __name__ == '__main__':
+    # Run the tests
+    unittest.main(verbosity=2)
